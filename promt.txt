@@ -1,0 +1,54 @@
+Формулировка задания:
+1. Рассчитать суммарные потери в линиях и ТР для каждого варианта (таблица, график dP= f(n)) для варианта с РГ и без неё.
+2. Сравнить результаты потерь для лучшего случая в сети с РГ и без неё.
+3. Построить графики сравнения потерь в линиях и ТР для модели с РГ и без неё
+4. Сравнить суммарные потери между моделями для лучшего варианта оптимизации топологии
+
+Напиши вывод к лабораторной работе на уровне студента 3 курса бакалавриата.
+
+--- Потери в сети С РГ ---
+        Com1   Com2   Com3  Total Losses  Line Losses  Transformer Losses
+    0   True   True   True      1.080512     0.515710            0.564801
+    1   True   True  False      1.018535     0.450705            0.567830
+    2   True  False   True      1.085157     0.520254            0.564903
+    3   True  False  False      1.021303     0.452770            0.568534
+    4  False   True   True      5.274883     4.445606            0.829277
+    5  False   True  False      0.311840     0.138140            0.173700
+    6  False  False   True      5.621448     4.730453            0.890995
+    7  False  False  False      0.311840     0.138140            0.173700
+
+--- Потери в сети БЕЗ РГ ---
+        Com1   Com2   Com3  Total Losses  Line Losses  Transformer Losses
+    0   True   True   True      1.180006     0.651209            0.528797
+    1   True   True  False      1.198956     0.671456            0.527500
+    2   True  False   True      1.177768     0.648492            0.529276
+    3   True  False  False      1.202458     0.674480            0.527978
+    4  False   True   True           inf          inf                 inf
+    5  False   True  False      0.311840     0.138140            0.173700
+    6  False  False   True           inf          inf                 inf
+    7  False  False  False      0.311840     0.138140            0.173700
+
+--- Лучший случай С РГ ---
+    Com1                    False
+    Com2                     True
+    Com3                    False
+    Total Losses          0.31184
+    Line Losses           0.13814
+    Transformer Losses     0.1737
+    Name: 5, dtype: object
+    Комбинация: Com1=False, Com2=True, Com3=False
+
+--- Лучший случай БЕЗ РГ ---
+    Com1                    False
+    Com2                     True
+    Com3                    False
+    Total Losses          0.31184
+    Line Losses           0.13814
+    Transformer Losses     0.1737
+    Name: 5, dtype: object
+    Комбинация: Com1=False, Com2=True, Com3=False
+
+--- Сравнение суммарных потерь для лучшего варианта ---
+    С РГ: 0.3118 МВт
+    Без РГ: 0.3118 МВт
+    С РГ потери меньше на 0.0000 МВт

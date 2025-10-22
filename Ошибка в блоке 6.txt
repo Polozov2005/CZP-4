@@ -1,0 +1,6 @@
+Ошибка в блоке 6
+
+  Cell In[13], line 21
+    trafo_losses = [best_case_with_RG['Transformer Losses'], best_case_without_RG['Transformer Losses')]
+                                                                                                      ^
+SyntaxError: closing parenthesis ')' does not match opening parenthesis '['
