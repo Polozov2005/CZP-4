@@ -1,0 +1,497 @@
+# --- ВАРИАНТЫ ТОПОЛОГИИ ---
+# Коммутационные аппараты могут быть включены (True) или выключены (False)
+# Всего 2^3 = 8 возможных комбинаций
+combinations = [
+    (Com1, Com2, Com3) for Com1 in [True, False] for Com2 in [True, False] for Com3 in [True, False]
+]
+
+results_with_RG = []
+results_without_RG = []
+
+print("Расчет потерь для всех комбинаций топологии...")
+
+for Com1, Com2, Com3 in combinations:
+    # --- Модель С РГ ---
+    net_with_RG = network(is_distributed=1, Com1=Com1, Com2=Com2, Com3=Com3)
+    total_p_with_RG, line_p_with_RG, trafo_p_with_RG = calculate_losses(net_with_RG)
+    results_with_RG.append({
+        'Com1': Com1, 'Com2': Com2, 'Com3': Com3,
+        'Total Losses': total_p_with_RG,
+        'Line Losses': line_p_with_RG,
+        'Transformer Losses': trafo_p_with_RG
+    })
+
+    # --- Модель БЕЗ РГ ---
+    net_without_RG = network(is_distributed=0, Com1=Com1, Com2=Com2, Com3=Com3)
+    total_p_without_RG, line_p_without_RG, trafo_p_without_RG = calculate_losses(net_without_RG)
+    results_without_RG.append({
+        'Com1': Com1, 'Com2': Com2, 'Com3': Com3,
+        'Total Losses': total_p_without_RG,
+        'Line Losses': line_p_without_RG,
+        'Transformer Losses': trafo_p_without_RG
+    })
+
+# --- Создание DataFrame для удобства ---
+df_with_RG = pd.DataFrame(results_with_RG)
+df_without_RG = pd.DataFrame(results_without_RG)
+
+# --- Вывод таблиц ---
+print("\n--- Потери в сети С РГ ---")
+print(df_with_RG)
+print("\n--- Потери в сети БЕЗ РГ ---")
+print(df_without_RG)
+
+Исправь этот блок таким образом, что если Total Losses Line Losses Transformer Losses с РГ и без РГ равны, то значение в таблицы не записывается
+
+
+Результат вывода твоего кода
+
+--- Потери в сети С РГ (только отличающиеся от без РГ) ---
+    Com1   Com2   Com3  Total Losses  Line Losses  Transformer Losses
+0   True   True   True      1.080512     0.515710            0.564801
+1   True   True  False      1.018535     0.450705            0.567830
+2   True  False   True      1.085157     0.520254            0.564903
+3   True  False  False      1.021303     0.452770            0.568534
+4  False   True   True      5.274883     4.445606            0.829277
+5  False   True  False      0.311840     0.138140            0.173700
+6  False  False   True      5.621448     4.730453            0.890995
+7  False  False  False      0.311840     0.138140            0.173700
+
+--- Потери в сети БЕЗ РГ (только отличающиеся от с РГ) ---
+    Com1   Com2   Com3  Total Losses  Line Losses  Transformer Losses
+0   True   True   True      1.180006     0.651209            0.528797
+1   True   True  False      1.198956     0.671456            0.527500
+2   True  False   True      1.177768     0.648492            0.529276
+3   True  False  False      1.202458     0.674480            0.527978
+4  False   True   True           inf          inf                 inf
+5  False   True  False      0.311840     0.138140            0.173700
+6  False  False   True           inf          inf                 inf
+7  False  False  False      0.311840     0.138140            0.173700
+
+6 строчки равны, он отработал неправильно
+
+
+Исправленный блок 1:
+def network(is_distributed, Com7, Com4, Com6, Com5):
+    # Создание пустой сети с указанным именем
+    net = pp.create_empty_network()
+    
+    # Создание узлов
+    busGS = pp.create_bus(
+        net,
+        name='generator',
+        vn_kv=110
+    )
+    bus1 = pp.create_bus(
+        net,
+        name='H1',
+        vn_kv=110
+    )
+    bus2 = pp.create_bus(
+        net,
+        name='H2',
+        vn_kv=110
+    )
+    bus3 = pp.create_bus(
+        net,
+        name='H3',
+        vn_kv=110
+    )
+    bus4 = pp.create_bus(
+        net,
+        name='H4',
+        vn_kv=10
+    )
+    bus5 = pp.create_bus(
+        net,
+        name='H5',
+        vn_kv=10
+    )
+    bus6 = pp.create_bus(
+        net,
+        name='H6',
+        vn_kv=10
+    )
+    bus7 = pp.create_bus(
+        net,
+        name='H7',
+        vn_kv=10
+    )
+    bus8 = pp.create_bus(
+        net,
+        name='H8',
+        vn_kv=10
+    )
+
+    # Добавочные узлы
+    busGS8 = pp.create_bus(
+        net,
+        name='HGS8',
+        vn_kv=110
+    )
+    bus35 = pp.create_bus(
+        net,
+        name='H35',
+        vn_kv=110
+    )
+    bus34 = pp.create_bus(
+        net,
+        name='H34',
+        vn_kv=110
+    )
+
+    # Подключение внешней энергосистемы
+    pp.create_ext_grid(
+        net,
+        bus=busGS,
+        s_sc_max_mva=100.0,
+        s_sc_min_mva=80.0,
+        rx_min=0.20,
+        rx_max=0.35,
+        vm_pu=1.02
+    )
+
+    # Создание нагрузок
+    pp.create_load(
+        net,
+        bus=bus1,
+        p_mw=12.0,
+        q_mvar=11.5
+    )
+    pp.create_load(
+        net,
+        bus=bus2,
+        p_mw=23.0,
+        q_mvar=21.5
+    )
+    pp.create_load(
+        net,
+        bus=bus3,
+        p_mw=27.0,
+        q_mvar=22.0
+    )
+    pp.create_load(
+        net,
+        bus=bus4,
+        p_mw=5.0,
+        q_mvar=3.0
+    )
+    pp.create_load(
+        net,
+        bus=bus5,
+        p_mw=3.0,
+        q_mvar=2.0
+    )
+    pp.create_load(
+        net,
+        bus=bus6,
+        p_mw=4.0,
+        q_mvar=3.0
+    )
+    pp.create_load(
+        net,
+        bus=bus7,
+        p_mw=2.5,
+        q_mvar=1.6
+    )
+    pp.create_load(
+        net,
+        bus=bus8,
+        p_mw=4.0,
+        q_mvar=3.5
+    )
+
+    # Создание электрических линий
+    pp.create_line_from_parameters(
+        net,
+        from_bus=busGS,
+        to_bus=busGS8,
+        length_km=6.1,
+        r_ohm_per_km=0.46,
+        x_ohm_per_km=0.275,
+        max_i_ka=0.265,
+        c_nf_per_km=0
+    )
+
+    pp.create_line_from_parameters(
+        net,
+        from_bus=bus3,
+        to_bus=bus35,
+        length_km=9.6,
+        r_ohm_per_km=0.46,
+        x_ohm_per_km=0.275,
+        max_i_ka=0.265,
+        c_nf_per_km=0
+    )
+
+    pp.create_line_from_parameters(
+        net,
+        from_bus=bus3,
+        to_bus=bus34,
+        length_km=8.7,
+        r_ohm_per_km=0.46,
+        x_ohm_per_km=0.275,
+        max_i_ka=0.265,
+        c_nf_per_km=0
+    )
+
+    pp.create_line_from_parameters(
+        net,
+        from_bus=bus1,
+        to_bus=bus2,
+        length_km=1.4,
+        r_ohm_per_km=0.33,
+        x_ohm_per_km=0.234,
+        max_i_ka=0.33,
+        c_nf_per_km=0
+    )
+
+    pp.create_line_from_parameters(
+        net,
+        from_bus=bus8,
+        to_bus=bus7,
+        length_km=1.1,
+        r_ohm_per_km=0.12,
+        x_ohm_per_km=0.378,
+        max_i_ka=0.605,
+        c_nf_per_km=0
+    )
+
+    pp.create_line_from_parameters(
+        net,
+        from_bus=bus5,
+        to_bus=bus6,
+        length_km=1.3,
+        r_ohm_per_km=0.157,
+        x_ohm_per_km=0.377,
+        max_i_ka=0.51,
+        c_nf_per_km=0
+    )
+
+    pp.create_line_from_parameters(
+        net,
+        from_bus=busGS,
+        to_bus=bus1,
+        length_km=1.2,
+        r_ohm_per_km=0.33,
+        x_ohm_per_km=0.234,
+        max_i_ka=0.33,
+        c_nf_per_km=0
+    )
+
+    # Создание коммутационных аппаратов (switches)
+    pp.create_switch(
+        net,
+        bus=bus2,
+        element=bus3,
+        et="b",
+        type="CB",
+        closed=1
+    )
+
+    pp.create_switch(
+        net,
+        bus=bus4,
+        element=bus5,
+        et="b",
+        type="CB",
+        closed=1
+    )
+
+    pp.create_switch(
+        net,
+        bus=bus7,
+        element=bus6,
+        et="b",
+        type="CB",
+        closed=1
+    )
+
+    # Q7
+    pp.create_switch(
+        net,
+        bus=busGS,
+        element=bus1,
+        et="b",
+        type="CB",
+        closed=Com7
+    )
+
+    # Q4
+    pp.create_switch(
+        net,
+        bus=bus1,
+        element=bus2,
+        et="b",
+        type="CB",
+        closed=Com4
+    )
+
+    # Q6
+    pp.create_switch(
+        net,
+        bus=bus5,
+        element=bus6,
+        et="b",
+        type="CB",
+        closed=Com6
+    )
+
+    # Q5
+    pp.create_switch(
+        net,
+        bus=bus8,
+        element=bus7,
+        et="b",
+        type="CB",
+        closed=Com5
+    )
+
+    # Создание трансформаторов
+    pp.create_transformer_from_parameters(
+        net,
+        hv_bus=busGS8,
+        lv_bus=bus8,
+        sn_mva=32,
+        vn_hv_kv=110,
+        vn_lv_kv=10,
+        vk_percent=10.5,
+        i0_percent=0.28,
+        pfe_kw=160,
+        vkr_percent=(160 / 320)
+    )
+
+    pp.create_transformer_from_parameters(
+        net,
+        hv_bus=bus35,
+        lv_bus=bus5,
+        sn_mva=40,
+        vn_hv_kv=110,
+        vn_lv_kv=10,
+        vk_percent=11,
+        i0_percent=0.3,
+        pfe_kw=170,
+        vkr_percent=(170 / 400)
+    )
+
+    pp.create_transformer_from_parameters(
+        net,
+        hv_bus=bus34,
+        lv_bus=bus4,
+        sn_mva=40,
+        vn_hv_kv=110,
+        vn_lv_kv=10,
+        vk_percent=11,
+        i0_percent=0.3,
+        pfe_kw=170,
+        vkr_percent=(170 / 400)
+    )
+
+    # # Создание конденсаторных батарей
+    # pp.create_shunt_as_capacitor(
+    #     net,
+    #     bus=bus4,
+    #     q_mvar=5.0 * Com1,
+    #     loss_factor=0,
+    #     in_service=Com2[0]
+    # )
+
+    # pp.create_shunt_as_capacitor(
+    #     net,
+    #     bus=bus5,
+    #     q_mvar=2.0 * Com1,
+    #     loss_factor=0,
+    #     in_service=Com2[1]
+    # )
+
+    # pp.create_shunt_as_capacitor(
+    #     net,
+    #     bus=bus7,
+    #     q_mvar=1.6 * Com1,
+    #     loss_factor=0,
+    #     in_service=Com2[2]
+    # )
+    # Создание генераторов
+    if is_distributed == 1:
+        pp.create_gen(
+            net,
+            bus=bus4,
+            p_mw=1.2,
+            vm_pu=1.05,
+            cos_phi=0.85,
+            vn_kv=10,
+            sn_mva=5,
+            xdss_pu=0.2,
+            rdss_pu=0.005,
+            rdss_ohm=0.1
+        )
+        pp.create_gen(
+            net,
+            bus=bus4,
+            p_mw=1.2,
+            vm_pu=1.05,
+            cos_phi=0.85,
+            vn_kv=10,
+            sn_mva=5,
+            xdss_pu=0.2,
+            rdss_pu=0.005,
+            rdss_ohm=0.1
+        )
+        pp.create_gen(
+            net,
+            bus=bus5,
+            p_mw=8.25,
+            vm_pu=1.05,
+            cos_phi=0.9,
+            vn_kv=10,
+            sn_mva=5,
+            xdss_pu=0.2,
+            rdss_pu=0.005,
+            rdss_ohm=0.1
+        )
+
+    return net
+
+Блок 3, требующий исправления:
+# --- ВАРИАНТЫ ТОПОЛОГИИ ---
+# Коммутационные аппараты могут быть включены (True) или выключены (False)
+# Всего 2^3 = 8 возможных комбинаций
+combinations = [
+    (Com1, Com2, Com3) for Com1 in [True, False] for Com2 in [True, False] for Com3 in [True, False]
+]
+
+results_with_RG = []
+results_without_RG = []
+
+print("Расчет потерь для всех комбинаций топологии...")
+
+for Com1, Com2, Com3 in combinations:
+    # --- Модель С РГ ---
+    net_with_RG = network(is_distributed=1, Com1=Com1, Com2=Com2, Com3=Com3)
+    total_p_with_RG, line_p_with_RG, trafo_p_with_RG = calculate_losses(net_with_RG)
+    results_with_RG.append({
+        'Com1': Com1, 'Com2': Com2, 'Com3': Com3,
+        'Total Losses': total_p_with_RG,
+        'Line Losses': line_p_with_RG,
+        'Transformer Losses': trafo_p_with_RG
+    })
+
+    # --- Модель БЕЗ РГ ---
+    net_without_RG = network(is_distributed=0, Com1=Com1, Com2=Com2, Com3=Com3)
+    total_p_without_RG, line_p_without_RG, trafo_p_without_RG = calculate_losses(net_without_RG)
+    results_without_RG.append({
+        'Com1': Com1, 'Com2': Com2, 'Com3': Com3,
+        'Total Losses': total_p_without_RG,
+        'Line Losses': line_p_without_RG,
+        'Transformer Losses': trafo_p_without_RG
+    })
+
+# --- Создание DataFrame для удобства ---
+df_with_RG = pd.DataFrame(results_with_RG)
+df_without_RG = pd.DataFrame(results_without_RG)
+
+# --- Вывод таблиц ---
+print("\n--- Потери в сети С РГ ---")
+print(df_with_RG)
+print("\n--- Потери в сети БЕЗ РГ ---")
+print(df_without_RG)
